@@ -17,7 +17,7 @@ hello:
 _start:
   mov r7, #4 @ sys_write
   mov r0, #1 @ stdout
-  adr r1, hello
+  ldr r1, =hello
   mov r2, #11
   svc 0
 
