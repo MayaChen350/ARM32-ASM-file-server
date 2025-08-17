@@ -2,7 +2,7 @@
   .align 2
   .global hello
 hello:
-  .string "hello world"
+  .string "hello world!!!! :3 :3 :3 :3"
 
   .section .bss @ unitialized
   .align 2
@@ -15,12 +15,44 @@ hello:
   .arm
   .global _start
 _start:
-  mov r7, #4 @ sys_write
-  mov r0, #1 @ stdout
   ldr r1, =hello
-  mov r2, #11
+  bl println
+
+  mov r7, #1 @ sys_exit
+  @ exit code is from print anyway
   svc 0
 
-  mov r7, #1
-  mov r0, #0
+.align 4
+.arm
+.global print
+println:
+  @ error handling
+  ldrsb r0, [r1]
+  tst r0, r0
+  bne .Lno_error
+  mov r0, #1
+  bx lr
+
+.Lno_error:
+  stmdb sp!, {r4, r7}
+  cpy r4, r1 @ saving pointer original position
+  mov r2, #0 @ index/chars size
+
+.Lcount_until_null:
+  add r2, r2, #1
+  ldrsb r3, [r1], #1 @ load character at hello
+  tst r3, r3
+  bne .Lcount_until_null @ check if null
+
+  mov r0, #0xA @ \n
+  strb r0, [r1] @ end the line with a LF
+  add r2, r2, #1
+
+  mov r7, #4 @ sys_write
+  mov r0, #1 @ stdout
+  cpy r1, r4
   svc 0
+
+  ldmia sp!, {r4, r7}
+  mov r0, #0 @ success :D
+  bx lr
