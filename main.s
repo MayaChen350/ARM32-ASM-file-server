@@ -1,30 +1,28 @@
   .data @ initialized
-  .align 2
   .global hello
+  .align 2
 hello:
   .string "hello world!!!! :3 :3 :3 :3"
 
   .section .bss @ unitialized
-  .align 2
+  @ .align 2
 
   .section .rodata, "a" @ readonly
-  .align 2
+  @ .align 2
 
   .text
-  .align 2
-  .arm
   .global _start
+  .align 2
 _start:
+
   ldr r1, =hello
   bl println
-
   mov r7, #1 @ sys_exit
   @ exit code is from print anyway
   svc 0
 
-.align 4
-.arm
 .global print
+.align 4
 println:
   @ error handling
   ldrsb r0, [r1]

@@ -1,13 +1,19 @@
 # Makefile because why not (better start somewhere)
-CC := arm-linux-gnu-gcc
+CC := arm-linux-gnu
 
-CFLAGS := -nostdlib -static -march=armv6 -mfpu=vfp -mfloat-abi=soft
+CFLAGS := -nostdlib -static  -march=armv6 -mfpu=vfp -mfloat-abi=soft
 
 TARGET := main
-SOURCE := $(TARGET).s
+SOURCE := $(wildcard *.s)
+OBJECTS := $(patsubst %s,%o, $(SOURCE))
 
-assemble:
-	$(CC) $(CFLAGS) -o $(TARGET) $(SOURCE)
+$(TARGET): $(OBJECTS)
+	$(CC)-gcc $(CFLAGS) -o $@ $<
+
+assemble: $(TARGET)
+
+%.o: %.s
+	$(CC)-as -o $@ $<
 
 run: assemble
 	qemu-arm $(TARGET)
