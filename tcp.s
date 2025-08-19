@@ -5,16 +5,14 @@
   @ .align 2
 
   .section .rodata, "a" @ readonly
-  .align 2
-msg_ok:
-  .asciz "200 OK"
+  @ .align 2
 
   .text
   .global create_tcp_packet
   .align 4
 create_tcp_packet:
   @ params:
-  @   r0: brk pointer
+  @   r0: buffer pointer
   @   r1: ptr data
   @   r2: data size
   @   r3: source port

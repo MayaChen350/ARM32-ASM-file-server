@@ -34,11 +34,10 @@ println:
   @ error handling
   ldrsb r0, [r1]
   tst r0, r0
-  bne .Lno_error
-  mov r0, #1
-  bx lr
+  movne r0, #1
+  bxne lr
 
-.Lno_error:
+@ no_error:
   stmdb sp!, {r4, r7}
   cpy r4, r1 @ saving pointer original position
   mov r2, #0 @ index/chars size

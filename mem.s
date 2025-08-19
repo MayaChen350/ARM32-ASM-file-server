@@ -41,8 +41,7 @@ mayalloc:
 
   @ update things
   ldr r6,=reserved_chunks
-  mov r7, #1 @ arm32 asm at its best
-  orr r7, r1, r7, lsl #31 @ alloc size with first bit at HIGH
+  orr r7, r1, #(1<<31) @ alloc size with first bit at HIGH
   str r7, [r6, r5] @ update the reserved chunks at index
   add r5, r5, #1
   strh r5, [r4] @ update chunk_index
@@ -64,8 +63,8 @@ maya_free:
   @   r0: block pointer from mayalloc
   @
   @ returns: not important
-  sub r0, r0, #2 @ the chunk index is the two bytes before the block
-  ldrh r1, [r0] @ chunk index for the block
+                     @ the chunk index is the two bytes before the block
+  ldrh r1, [r0, #-2] @ chunk index for the block
 
   ldr r2,=reserved_chunks
   @ Those values contain:
@@ -76,22 +75,22 @@ maya_free:
   ldr r3,=chunk_index
   ldr r3, [r3]
   @ load chunk int32 in advance
-  ldr r0, [r2, r1]
-  mov r12, #1
-  sub r0, r0, r12, lsl #31 @ unset first bit
+  ldr r0, [r2, r1, lsl #2]
+  sub r0, r0, #(1<<31) @ unset first bit
+
   @ verifying
   cmp r3, r1
-  bne .Ljust_unreserve_and_go
+  strne r0, [r2, r1, lsl #2]
+  bxne lr
 
   @ actually deallocating memory
-  mov r12, #0 @ number for how much we deallocate
-  mov r1, #1 @ 1
+  movs r12, r0 @ number for how much we deallocate
 
 .Lfreeing_heap:
-  add r12, r12, r0
+  addeq r12, r12, r0
   sub r3, r3, #1  @ current chunk_index
-  ldr r0, [r2, r3] @ load new byte
-  tst r0, r1, lsl #31
+  ldr r0, [r2, r3, lsl #2] @ load new byte
+  tst r0, #(1<<31)
   beq .Lfreeing_heap
 
   @ we finally deallocate memory
@@ -103,7 +102,4 @@ maya_free:
   swi 0
   str r0, [r1] @ update brk_ptr
   ldmia sp!, {r7}
-  bx lr
-.Ljust_unreserve_and_go:
-  str r0, [r2, r1]
   bx lr
