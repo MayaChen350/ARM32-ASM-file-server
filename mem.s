@@ -94,12 +94,12 @@ maya_free:
   beq .Lfreeing_heap
 
   @ we finally deallocate memory
-  stmdb sp!, {r7}
+  str r7, [sp, #-4]!
   mov r7, #0x2d @ sys_brk
   ldr r1,=brk_ptr
   ldr r0, [r1]
   sub r0, r0, r12
   swi 0
   str r0, [r1] @ update brk_ptr
-  ldmia sp!, {r7}
+  ldr r7, [sp], #4
   bx lr

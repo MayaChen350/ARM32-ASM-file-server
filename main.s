@@ -20,39 +20,35 @@ _start:
   mov r0, #0
   mov r7, #0x2d @ sys_brk
   svc 0
-  ldr r1,=brk_ptr
+  ldr r1,.Lbrk_ptr
   str r0, [r1]
 
-  ldr r1, =hello
+  adr r1, .Lmsg_start
   bl print
   mov r7, #1 @ sys_exit
+  mov r0, #0
   svc 0
+.Lbrk_ptr:
+  .word brk_ptr
+.Lmsg_start:
+  .string "Initiated.\n"
 
 .global print @ no more println
 .align 4
 print:
-  @ error handling
-  @ldrsb r0, [r1]
-  @tst r0, r0
-  @moveq r0, #1
-  @bxeq lr
-
-@ no_error:
- mov r2, #0 @ index/chars size
- stmdb sp!, {r2, r7}
+  cpy r2, r1
+  str r7, [sp, #-4]!
 
 .Lcount_until_null:
-  add r2, r2, #1
-  ldrsb r3, [r1, r2] @ load character at hello
+  ldrsb r3, [r2], #1 @ load character
   tst r3, r3
   bne .Lcount_until_null @ check if null
 
   mov r7, #4 @ sys_write
   mov r0, #1 @ stdout
   @ r1 has not been modified
-  @ r2 was incrementing in the loop
+  sub r2, r2, r1 @ size
   svc 0
 
-  ldmia sp!, {r0, r7}
+  ldr r7, [sp], #4
   bx lr
-
