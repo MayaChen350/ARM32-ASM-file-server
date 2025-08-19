@@ -8,7 +8,7 @@ SOURCE := $(wildcard *.s)
 OBJECTS := $(patsubst %s,%o, $(SOURCE))
 
 $(TARGET): $(OBJECTS)
-	$(CC)-gcc $(CFLAGS) -o $@ $<
+	$(CC)-gcc $(CFLAGS) -o $@ $^
 
 assemble: $(TARGET)
 

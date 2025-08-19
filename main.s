@@ -4,6 +4,8 @@
 hello:
   .string "hello world!!!! :3 :3 :3 :3"
 
+  .extern brk_ptr
+
   .section .bss @ unitialized
   @ .align 2
 
@@ -14,14 +16,19 @@ hello:
   .global _start
   .align 2
 _start:
+  @ "init" brk_ptr
+  mov r0, #0
+  mov r7, #0x2d @ sys_brk
+  svc 0
+  ldr r1,=brk_ptr
+  str r0, [r1]
 
   ldr r1, =hello
   bl println
   mov r7, #1 @ sys_exit
-  @ exit code is from print anyway
   svc 0
 
-.global print
+.global println
 .align 4
 println:
   @ error handling

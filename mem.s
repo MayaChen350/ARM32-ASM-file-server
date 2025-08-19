@@ -1,0 +1,109 @@
+  .bss
+  .global brk_ptr
+  .align 2
+brk_ptr:
+  .space 4
+
+  .align 8
+reserved_chunks:
+  .space 1024
+
+  .data
+  .align 4
+chunk_index:
+  .hword 0
+
+.text
+.global mayalloc
+.align 4
+mayalloc:
+  @ params:
+  @   r1: size
+  @
+  @ returns: start address of new mem block
+  stmdb sp!, {r4, r5, r6, r7}
+  ldr r12, =brk_ptr @ ptr**
+  ldr r3, [r12] @ ptr*
+
+  ldr r0, [r3, r1]
+  add r0, r0, #2 @ the 2 bytes for the 16 bit index to the reserved_chunk
+  mov r7, #0x2d @ sys_brk
+  swi 0
+
+  @ error handling
+  cmp r0, r3
+  beq .Lerror
+
+  @ insert the 2 bytes of the chunk_ptr
+  ldr r4, =chunk_index @ chunk_index ptr
+  ldrh r5, [r4] @ chunk_index
+  strh r5, [r3] @ index at 2 first bytes of the allocation
+
+  @ update things
+  ldr r6,=reserved_chunks
+  mov r7, #1 @ arm32 asm at its best
+  orr r7, r1, r7, lsl #31 @ alloc size with first bit at HIGH
+  str r7, [r6, r5] @ update the reserved chunks at index
+  add r5, r5, #1
+  strh r5, [r4] @ update chunk_index
+  str r0, [r12] @ update brk_ptr
+
+  @ return
+  sub r0, r1 @ back to the start
+  ldmia sp!, {r4, r5, r6, r7}
+  bx lr
+.Lerror: @ out of memory
+  mov r0, #1
+  mov r7, #1
+  swi 0
+
+  .global maya_free
+  .align 4
+maya_free:
+  @ params:
+  @   r0: block pointer from mayalloc
+  @
+  @ returns: not important
+  sub r0, r0, #2 @ the chunk index is the two bytes before the block
+  ldrh r1, [r0] @ chunk index for the block
+
+  ldr r2,=reserved_chunks
+  @ Those values contain:
+  @   1 bit for if it's still reserved or not
+  @   31 bits for the actual value allocated
+
+  @ verifying if it's time to unallocate (or not and mostly just return)
+  ldr r3,=chunk_index
+  ldr r3, [r3]
+  @ load chunk int32 in advance
+  ldr r0, [r2, r1]
+  mov r12, #1
+  sub r0, r0, r12, lsl #31 @ unset first bit
+  @ verifying
+  cmp r3, r1
+  bne .Ljust_unreserve_and_go
+
+  @ actually deallocating memory
+  mov r12, #0 @ number for how much we deallocate
+  mov r1, #1 @ 1
+
+.Lfreeing_heap:
+  add r12, r12, r0
+  sub r3, r3, #1  @ current chunk_index
+  ldr r0, [r2, r3] @ load new byte
+  tst r0, r1, lsl #31
+  beq .Lfreeing_heap
+
+  @ we finally deallocate memory
+  stmdb sp!, {r7}
+  mov r7, #0x2d @ sys_brk
+  ldr r1,=brk_ptr
+  ldr r0, [r1]
+  sub r0, r0, r12
+  swi 0
+  str r0, [r1] @ update brk_ptr
+  ldmia sp!, {r7}
+  bx lr
+.Ljust_unreserve_and_go:
+  str r0, [r2, r1]
+  bx lr
