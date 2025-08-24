@@ -5,6 +5,7 @@ hello:
   .string "hello world!!!! :3 :3 :3 :3\n"
 
   .extern brk_ptr
+  .extern print
 
   .section .bss @ unitialized
   @ .align 2
@@ -24,6 +25,7 @@ _start:
   str r0, [r1]
 
   adr r1, .Lmsg_start
+  mov r2, #(.Lmsg_start_end - .Lmsg_start)
   bl print
   mov r7, #1 @ sys_exit
   mov r0, #0
@@ -32,23 +34,4 @@ _start:
   .word brk_ptr
 .Lmsg_start:
   .string "Initiated.\n"
-
-.global print @ no more println
-.align 4
-print:
-  cpy r2, r1
-  str r7, [sp, #-4]!
-
-.Lcount_until_null:
-  ldrsb r3, [r2], #1 @ load character
-  tst r3, r3
-  bne .Lcount_until_null @ check if null
-
-  mov r7, #4 @ sys_write
-  mov r0, #1 @ stdout
-  @ r1 has not been modified
-  sub r2, r2, r1 @ size
-  svc 0
-
-  ldr r7, [sp], #4
-  bx lr
+.Lmsg_start_end:

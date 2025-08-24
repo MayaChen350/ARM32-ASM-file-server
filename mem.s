@@ -1,3 +1,6 @@
+@ macros
+  .equ TOTAL_ALLOCATIONS, 256 
+
   .bss
   .global brk_ptr
   .align 2
@@ -6,7 +9,7 @@ brk_ptr:
 
   .align 8
 reserved_chunks:
-  .space 1024
+  .space (TOTAL_ALLOCATIONS*4)
 
   .data
   .align 4
@@ -14,6 +17,9 @@ chunk_index:
   .hword 0
 
 .text
+
+  .extern fatal_error
+
 .global mayalloc
 .align 4
 mayalloc:
@@ -32,6 +38,7 @@ mayalloc:
 
   @ error handling
   cmp r0, r3
+  moveq r0, #2 @ out of memory code
   beq .Lerror
 
   @ insert the 2 bytes of the chunk_ptr
@@ -44,6 +51,12 @@ mayalloc:
   orr r7, r1, #(1<<31) @ alloc size with first bit at HIGH
   str r7, [r6, r5] @ update the reserved chunks at index
   add r5, r5, #1
+
+  @ error handling
+  cmp r5, #TOTAL_ALLOCATIONS
+  movgt r0, #3
+  bgt .Lerror
+
   strh r5, [r4] @ update chunk_index
   str r0, [r12] @ update brk_ptr
 
@@ -51,10 +64,9 @@ mayalloc:
   sub r0, r1 @ back to the start
   ldmia sp!, {r4, r5, r6, r7}
   bx lr
-.Lerror: @ out of memory
-  mov r0, #1
-  mov r7, #1
-  swi 0
+.Lerror:
+  ldr r1, =fatal_error
+  bx r1
 
   .global maya_free
   .align 4

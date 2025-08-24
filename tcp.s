@@ -8,9 +8,9 @@
   @ .align 2
 
   .text
-  .global create_tcp_packet
-  .align 4
-create_tcp_packet:
+  @.global create_tcp_packet
+  @.align 4
+@create_tcp_packet:
   @ params:
   @   r0: buffer pointer
   @   r1: ptr data
