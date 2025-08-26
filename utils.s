@@ -1,7 +1,7 @@
 .text
 .global print
 .arm
-.align 4
+.align 2
 print:
   @ params:
   @   r0: (unused for less instructions)
@@ -36,7 +36,7 @@ print:
 .equ CHUNK_NO_BOUND_CODE, 2
 
 .global fatal_error
-.align 2
+.align 1
 .thumb_func
 fatal_error:
   @ params:
@@ -81,17 +81,17 @@ fatal_error:
   mov r0, r3
   swi 0
 
-  .align 2
+  .align 0
 .str_fatalError: @ code 1
   .ascii "Fatal Error"
 .Lfatal_error_end:
 
-  .align 2
+  .align 0
 .str_outOfMemory: @ code 2
   .ascii ": Out of memory"
 .Lout_of_memory_end:
 
-  .align 2
+  .align 0
 .str_chunkIndexOutOfBound:
   .ascii ": Chunk index out of bound"
 .Lchunk_no_bound_end:

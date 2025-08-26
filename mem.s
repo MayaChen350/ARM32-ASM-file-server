@@ -7,12 +7,12 @@
 brk_ptr:
   .space 4
 
-  .align 8
+  .align 6
 reserved_chunks:
   .space (TOTAL_ALLOCATIONS*4)
 
   .data
-  .align 4
+  .align 1
 chunk_index:
   .hword 0
 

@@ -1,6 +1,6 @@
   .data @ initialized
   .global hello
-  .align 2
+  .align 0
 hello:
   .string "hello world!!!! :3 :3 :3 :3\n"
 
@@ -30,6 +30,7 @@ _start:
   mov r7, #1 @ sys_exit
   mov r0, #0
   svc 0
+  .align 2
 .Lbrk_ptr:
   .word brk_ptr
 .Lmsg_start:
