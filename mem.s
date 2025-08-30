@@ -7,18 +7,37 @@
 brk_ptr:
   .space 4
 
-  .align 8
+  .align 5
 reserved_chunks:
-  .space (TOTAL_ALLOCATIONS*4)
+  .space ((TOTAL_ALLOCATIONS*4) + 1) @ the dummy chunk idk
 
   .data
-  .align 4
+  .align 1
 chunk_index:
-  .hword 0
+  .hword 1 @ 0 is for the dummy chunk
 
 .text
 
   .extern fatal_error
+
+.global init_mayallocator
+.align 2
+init_mayallocator:
+  @ brk_ptr
+  str r7, [sp, #-4]!
+  mov r0, #0
+  mov r7, #0x2d @ sys_brk
+  svc 0
+  ldr r1,=brk_ptr
+  str r0, [r1]
+
+  @ dummy reserved block
+  ldr r1,=reserved_chunks
+  mov r0, #(1<<31)
+  str r0, [r1]
+
+  ldr r7, [sp], #4
+  bx lr
 
 .global mayalloc
 .align 4

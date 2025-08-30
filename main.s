@@ -6,6 +6,7 @@ hello:
 
   .extern brk_ptr
   .extern print
+  .extern init_mayallocator
 
   .section .bss @ unitialized
   @ .align 2
@@ -17,12 +18,7 @@ hello:
   .global _start
   .align 2
 _start:
-  @ "init" brk_ptr
-  mov r0, #0
-  mov r7, #0x2d @ sys_brk
-  svc 0
-  ldr r1,.Lbrk_ptr
-  str r0, [r1]
+  bl init_mayallocator
 
   adr r1, .Lmsg_start
   mov r2, #(.Lmsg_start_end - .Lmsg_start)
