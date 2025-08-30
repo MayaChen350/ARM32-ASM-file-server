@@ -7,7 +7,7 @@
 brk_ptr:
   .space 4
 
-  .align 5
+  .align 6
 reserved_chunks:
   .space ((TOTAL_ALLOCATIONS*4) + 1) @ the dummy chunk idk
 

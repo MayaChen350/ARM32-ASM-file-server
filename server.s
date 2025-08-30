@@ -5,6 +5,6 @@
   @ .align 2
 
   .section .rodata, "a" @ readonly
-  .align 2
+  .align 0
 msg_ok:
   .asciz "200 OK"
